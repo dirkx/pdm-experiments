@@ -9,3 +9,8 @@ slow enough to debug by hand.
 ## 002 - simple PDM emitter with DMA backing
 
 Above - but now fed by a ring buffer made available over DMA.
+
+## 003 - PDM receiver; using 32 bit fifo
+
+Passes on the full bit pattern; no counting yet.
+

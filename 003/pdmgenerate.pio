@@ -1,0 +1,58 @@
+.pio_version 0 // only requires PIO version 0
+
+; See also https://github.com/raspberrypi/pico-examples/blob/master/dma/channel_irq/pio_serialiser.pio
+;
+
+; - OUT pin 0 is the data pin
+; - IN pin 1 is the clock pin
+; - Autopush is enabled, threshold 8
+;
+; This program outputs data after a falling clock pin.
+
+.program pdmgenerate
+    out pins, 1
+    wait 1 pin 2
+    wait 0 pin 2
+
+
+% c-sdk {
+static inline void pdmgenerate_program_init(PIO pio, uint sm, uint offset, uint pin_data, uint pin_clk) {
+    pio_sm_config c = pdmgenerate_program_get_default_config(offset);
+
+   pio_sm_set_consecutive_pindirs(pio, sm, pin_data, 2, true);
+   sm_config_set_set_pins(&c, pin_data, 2);
+
+    sm_config_set_out_pins(&c, pin_data, 1);
+    sm_config_set_in_pins(&c, pin_clk);
+
+    // set out to 0
+    // data is output, clk is input.
+//    pio_sm_set_pins_with_mask(pio, sm, 0, (1u << pin_data)); 
+//    pio_sm_set_pindirs_with_mask(pio, sm, (1u << pin_data), (1u << pin_data) | (1u << pin_clk));
+
+    pio_gpio_init(pio, pin_data);
+    pio_gpio_init(pio, pin_clk);
+
+    sm_config_set_in_shift(
+        &c,
+        false,  // Shift-to-right
+        true,  // Autopush enabled
+        32      // Autopush threshold = 8 ???
+    );
+
+    // We only send, so disable the RX FIFO to make the TX FIFO deeper.
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
+
+    sm_config_set_out_shift(&c, true, true, 32);
+
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_drain_tx_fifo(pio,sm);
+
+}
+
+static inline void pdmgenerate_program_putc(PIO pio, uint sm, uint32_t c) {
+    pio_sm_put_blocking(pio, sm, c);
+}
+
+%}
+
