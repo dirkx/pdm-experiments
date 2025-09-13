@@ -1,0 +1,62 @@
+.pio_version 0 // only requires PIO version 0
+
+; See also https://github.com/raspberrypi/pico-examples/blob/master/dma/channel_irq/pio_serialiser.pio
+;
+
+; This program operates a clock and then reads a bit
+; each time the pin goes low
+;
+; DAT is in pin 0
+; CLK is side-set pin 0
+
+; Count the number of bits; once we have 8 (or some other Q level), pass them on.
+;
+.program receiver
+
+.side_set 1 				; Tell the assembler we have one sideset pin
+
+    set x, 7 		side 1		; readout counter (Q)
+    set y, 0 		side 1  	; count of the bits set to zero in Q,
+
+q_loop:
+    nop 		side 0 [1]	; set the clock low and wait
+    jmp pin continue	side 0 [1]	; check a pin
+    jmp y-- continue 	side 1		; count the number of zero's
+
+continue:
+    jmp x-- q_loop	side 1		; loop until we've done Q(x) clocks
+
+    mov ISR, y 		side 1 		; We've done Q bits - report our bit count 
+    push side 1
+.wrap					; reset the Q counter.
+
+% c-sdk {
+static inline void receiver_program_init(PIO pio, uint sm, uint offset, uint pin_dat, uint pin_clk, uint64_t sampleBitRate) {
+
+    pio_gpio_init(pio, pin_dat);
+    pio_gpio_init(pio, pin_clk);
+
+    pio_sm_config c = receiver_program_get_default_config(offset);
+
+    sm_config_set_jmp_pin(&c, pin_dat); 	// wire JMP to dat
+    sm_config_set_sideset_pins(&c, pin_clk);	// wire CLK to the side pin
+
+    pio_sm_set_pins_with_mask(pio, sm, 0, (1u << pin_clk));
+    pio_sm_set_pindirs_with_mask(pio, sm, (1u << pin_clk), (1u << pin_dat) | (1u << pin_clk));
+
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+
+    float div = (float)clock_get_hz(clk_sys) / (5 /* sort of rough # of instructions */  * sampleBitRate);
+    sm_config_set_clkdiv(&c, div);
+
+    pio_sm_init(pio, sm, offset, &c);
+}
+
+static inline uint32_t receiver_program_get(PIO pio, uint sm) {
+    static int x = 0;
+    uint32_t v = -pio_sm_get_blocking(pio, sm);
+    return 8 - v;
+}
+
+%}
+

@@ -17,3 +17,7 @@ Passes on the full bit pattern; no counting yet.
 ## 004 - PDM receiver; counting the number
 
 Counts the number of bits in the PIO, with Q=32, and then passes this to the FIFO
+
+## 005 - PDM receiver; counting the number
+
+Counts the number of bits in the PIO, with Q=4,5,6,7 or 8=, and then passes this to the FIFO
