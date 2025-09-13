@@ -21,3 +21,7 @@ Counts the number of bits in the PIO, with Q=32, and then passes this to the FIF
 ## 005 - PDM receiver; counting the number
 
 Counts the number of bits in the PIO, with Q=4,5,6,7 or 8=, and then passes this to the FIFO
+
+## 006 - PDM receiver; counting the number
+
+Use an 32 bit fifo to pass 4 counts in one pass
