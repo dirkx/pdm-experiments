@@ -14,3 +14,6 @@ Above - but now fed by a ring buffer made available over DMA.
 
 Passes on the full bit pattern; no counting yet.
 
+## 004 - PDM receiver; counting the number
+
+Counts the number of bits in the PIO, with Q=32, and then passes this to the FIFO
