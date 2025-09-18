@@ -29,8 +29,6 @@ int main() {
     pdmgenerate_program_init(pio, sm, offset, PIO_GPIO_DAT, PIO_GPIO_CLK);
     pio_sm_set_enabled(pio, sm, true);
 
-    pdmgenerate_program_putc(pio, sm, 0x04030201);
-    pdmgenerate_program_putc(pio, sm, 0x08070605);
 
 #if 0
     gpio_init(PIO_GPIO_DAT);
@@ -44,31 +42,38 @@ int main() {
     gpio_init(GPIO_CLK);
     gpio_set_dir(GPIO_CLK, GPIO_OUT);
 
+for(;;) {
+    pdmgenerate_program_putc(pio, sm, 0x04030201);
+    pdmgenerate_program_putc(pio, sm, 0x08070605);
     uint8_t d8 = 0;
     uint16_t d16 = 0;
     uint32_t d32 = 0;
-    for(int clk = 0; clk < 10*8; clk++) {
+    printf("=== 2x32 bt loop\n");
+    for(int clk = 0; clk < 2*4*8; clk++) {
        gpio_put(GPIO_CLK,1);
-//       sleep_ms(1);
+       sleep_ms(1);
        gpio_put(GPIO_CLK,0);
- //      sleep_ms(1);
+       sleep_ms(1);
+
        // printf("CLK: %2d - %2d\n", clk, gpio_get(GPIO_DAT));
        printf("%2d/%2d ", clk, gpio_get(GPIO_DAT));
 
        d8  = ( d8>>1) | (gpio_get(GPIO_DAT)<<7);
        d16 = (d16>>1) | (gpio_get(GPIO_DAT)<<15);
        d32 = (d32>>1) | (gpio_get(GPIO_DAT)<<31);
-8
+
+#if 0
        if (clk % 8 == 7)
-          printf("    Q08: %2d# :: 0x%x\n", clk/8, d8)
+          printf("    Q08: %2d# :: 0x%x\n", clk/8, d8);
        if (clk % 16 == 15)
           printf("    Q16: %2d# :: 0x%x\n", clk/16, d16);
-       if (clk % 32 == 32)
+#endif
+       if (clk % 32 == 31)
           printf("    Q32: %2d# :: 0x%x\n", clk/16, d32);
-//       sleep_ms(1);
-//       sleep_ms(1);
+       sleep_ms(10);
     };
-
+    sleep_ms(100);
+};
     return 0;
 }
 

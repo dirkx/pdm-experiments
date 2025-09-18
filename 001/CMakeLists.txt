@@ -17,11 +17,11 @@ target_link_libraries(pdmgenerate PRIVATE pico_stdlib hardware_pio)
 
 # Convenience for burning
 # add_custom_target(flash ALL
-#   COMMAND /usr/local/bin/openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c 'adapter speed 5000' -c 'program pdmgenerate.elf reset exit'
+#   COMMAND openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c 'adapter speed 5000' -c 'program pdmgenerate.elf reset exit'
 # )
 
 add_custom_target(flashW2 ALL
-  COMMAND /usr/local/bin/openocd -f interface/cmsis-dap.cfg -f target/rp2350.cfg -c 'adapter speed 5000' -c 'program pdmgenerate.elf reset exit'
+  COMMAND openocd -f interface/cmsis-dap.cfg -f target/rp2350.cfg -c 'adapter speed 5000' -c 'program pdmgenerate.elf reset exit'
 )
 
 # create map/bin/hex/uf2 file in addition to ELF.
