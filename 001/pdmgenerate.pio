@@ -18,12 +18,13 @@
 static inline void pdmgenerate_program_init(PIO pio, uint sm, uint offset, uint pin_data, uint pin_clk) {
     pio_sm_config c = pdmgenerate_program_get_default_config(offset);
 
+   pio_sm_set_consecutive_pindirs(pio, sm, pin_data, 2, true);
+
     // data is output, clk is input.
     //
     sm_config_set_out_pins(&c, pin_data, 1);
     sm_config_set_in_pins(&c, pin_clk);
 
-    pio_sm_set_pins_with_mask(pio, sm, 0, (1u << pin_data)); 
     pio_sm_set_pindirs_with_mask(pio, sm, (1u << pin_data), (1u << pin_data) | (1u << pin_clk));
 
     pio_gpio_init(pio, pin_data);
